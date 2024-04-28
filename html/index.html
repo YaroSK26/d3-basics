@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learning D3</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script type="module"></script>
+  </head>
+  <body>
+    <h1>Learning D3</h1>
+    <ul class="items">
+      <li>item</li>
+      <li>item</li>
+      <li>item</li>
+      <li>item</li>
+    </ul>
+
+    <p>a</p>
+    <p>b</p>
+
+    <svg width="400" height="400" style="background: #f4f4f4">
+      <rect
+        width="300"
+        height="300"
+        style="fill: rgb(255, 0, 0); stroke: rgb(0, 0, 0); stroke-width: 1"
+        x="50"
+        y="50"
+      ></rect>
+      <circle cx="50" cy="50" r="30" stroke="black" stroke-width="1"></circle>
+    </svg>
+
+    <div id="element"></div>
+    <div id="chart"></div>
+    <script>
+      myData = [];
+      const dataCount = 50;
+      for (var i = 0; i < dataCount; i++) {
+        myData.push(Math.random() * 500);
+      }
+
+      //   myData.sort(function (a, b) {
+      //     return a - b;
+      //   });
+
+      const margin = { top: 30, right: 30, bottom: 50, left: 50 };
+      const height = 500 - margin.top - margin.bottom;
+      const width = 500 - margin.left - margin.right;
+
+      const tooltip = d3
+        .select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("padding", "5 15px")
+        .style("background", "#f4f4f4")
+        .style("opacity", 0)
+        .style("border", "1px solid #333")
+        .style("border-radius", "5px");
+
+      const yScale = d3
+        .scaleLinear()
+        .domain([0, d3.max(myData)])
+        .range([0, height]);
+
+      const xScale = d3
+        .scaleBand()
+        .domain(d3.range(0, myData.length))
+        .range([0, width])
+        .padding(0.1);
+
+      const colorScale = d3
+        .scaleSequential()
+        .domain([0, myData.length])
+        .interpolator(d3.interpolateBlues);
+
+      const svg = d3
+        .select("#chart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + ", " + margin.top + ")")
+        .style("background", "#f4f4f4");
+
+      const rects = svg
+        .selectAll("rect")
+        .data(myData)
+        .enter()
+        .append("rect")
+        .style("fill", function (d, i) {
+          return colorScale(i);
+        })
+        .attr("width", xScale.bandwidth())
+        .attr("height", 0) // Start with height 0 for animation
+        .attr("x", function (d, i) {
+          return xScale(i);
+        })
+        .attr("y", height) // Start at bottom for animation
+        .on("mouseover", function (event, d) {
+          const [x, y] = d3.pointer(event); // Use d3.pointer to get coordinates
+          tooltip.transition().style("opacity", 1);
+          tooltip
+            .html("value: " + d)
+            .style("left", x + "px")
+            .style("top", d3.event.pageY + "px");
+        })
+        .on("mouseout", function (d) {
+          tooltip.transition().style("opacity", 0);
+        });
+
+      // Animate the rectangles
+      rects
+        .transition()
+        .attr("height", function (d) {
+          return yScale(d);
+        })
+        .attr("y", function (d) {
+          return height - yScale(d);
+        })
+        .duration(1000)
+        .delay(function (d, i) {
+          return i * 100;
+        })
+        .ease(d3.easeElastic);
+
+      const vScale = d3
+        .scaleLinear()
+        .domain([0, d3.max(myData)])
+        .range([height, 0]);
+
+      const hScale = d3
+        .scaleBand()
+        .domain(d3.range(0, myData.length))
+        .range([0, width])
+        .padding(0.1);
+
+      const vAxis = d3.axisLeft(vScale).ticks(5);
+
+    const vGuide = svg.append("g");
+  vAxis(vGuide);
+  vGuide.attr("transform", "translate(0, 0)"); // Remove margin from transform
+  vGuide.selectAll("path").style({ fill: "none", stroke: "#000" });
+  vGuide.selectAll("line").style({ stroke: "#000" });
+
+  const hAxis = d3.axisBottom(hScale).tickValues(
+    hScale.domain().filter(function (d, i) {
+      return !(i % (myData.length / 6));
+    })
+  );
+
+  const hGuide = svg.append("g");
+  hAxis(hGuide);
+  hGuide.attr("transform", "translate(0, " + height + ")"); // Remove margin from transform
+  hGuide.selectAll("path").style({ fill: "none", stroke: "#000" });
+  hGuide.selectAll("line").style({ stroke: "#000" });
+
+    
+      hGuide.selectAll("path").style({ fill: "none", stroke: "#000" });
+      hGuide.selectAll("line").style({ stroke: "#000" });
+    </script>
+  </body>
+</html>
